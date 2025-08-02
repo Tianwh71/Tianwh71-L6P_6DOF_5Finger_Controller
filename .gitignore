@@ -1,0 +1,35 @@
+# 忽略编译生成的中间文件
+*.obj
+*.o
+*.d
+*.crf
+*.axf
+*.lnp
+*.sct
+*.EDY
+*.scvd
+*.dep
+*.hex
+*.exe
+*.bak
+*.tmp
+*.htm
+*.log
+*.lock
+/G474_O12
+# VS Code 设置文件
+.vscode/
+RTE/
+
+# 忽略调试信息文件
+*.map
+*.lst
+
+# 忽略 IDE 配置文件
+.user
+.suo
+.iex
+
+# 忽略其他个人配置文件
+.settings
+.prj
