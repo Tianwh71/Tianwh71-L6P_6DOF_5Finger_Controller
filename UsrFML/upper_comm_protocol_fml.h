@@ -190,7 +190,7 @@ typedef enum
 {
 	INVALID_FRAME_PROPERTY = 0x00, // 无效的can帧属性
 	JOINT_POSITION_RCO = 0x01,		 // 关节位置
-	MAX_PRESS_RCO = 0x02,					 // 最大压力
+	MAX_LIMIT_I_RCO = 0x02,					 // 最大电流设定值
 	MAX_PRESS_RCO1 = 0x03,				 // 其它数据
 	JOINT_POSITION2_RCO = 0X04,		 // 关节位置2
 	SPEED_RCO = 0X05,							 // 五个手指的速度
@@ -280,10 +280,11 @@ extern Protocol_Aux_Data protocol_aux_data;
 //void comm_485_send(Upper_485_Transmit *rs485_trans, Lower_Response *lower_response, FRAME_PROPERTY frame_property);
 //void event_485_dispose(void);
 /*can*/
-//void comm_can_parser(Upper_Can_Transmit *can_trans, Upper_Request *upper_request, Protocol_Aux_Data *aux_data);
+void comm_can_parser(Upper_Can_Transmit *can_trans, Upper_Request *upper_request, Protocol_Aux_Data *aux_data);
 //void comm_can_send(Upper_Can_Transmit *can_trans, Lower_Response *lower_response, FRAME_PROPERTY frame_property);
 void event_can_dispose(void);
 void comm_can_touch_sensor_parser(Can_Rx_Queue *pRx_queue, Upper_Request *pRequest, Lower_Response *pResponse, Protocol_Aux_Data *aux_data);
+void comm_can_config_parser(Upper_Can_Transmit *can_trans, Upper_Request *upper_request, Protocol_Aux_Data *aux_data);
 void comm_can_touch_sensor_send(Upper_Can_Transmit *can_trans, Lower_Response *pResponse, FRAME_PROPERTY frame_property);
 void event_can_tip_sensor_dispose(void);
 // void comm_modbus_touch_sensor_get(Modbus_485 *modbus, Lower_Response *pResponse, FRAME_PROPERTY frame_property);

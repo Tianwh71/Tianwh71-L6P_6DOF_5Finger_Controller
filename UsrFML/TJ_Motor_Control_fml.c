@@ -5,48 +5,48 @@
 #include "my_math.h"
 
 TJ_Servo tj_servo[TJ_ID_MAXIMUM] = {
-    // 舵机1
+    // 电机1
     [TJ_ID_1].is_servo_valid = true,
     [TJ_ID_1].is_servo_online = true,
     [TJ_ID_1].go_home = true,
     [TJ_ID_1].pos_limit_min = 0,
-    [TJ_ID_1].pos_limit_max = 2000,
+    [TJ_ID_1].pos_limit_max = POS_LIMIT_MAX_THEMB,
     [TJ_ID_1].servo_id = TJ_ID_1,
 
-    // 舵机2
+    // 电机2
     [TJ_ID_2].is_servo_valid = true,
     [TJ_ID_2].is_servo_online = true,
     [TJ_ID_2].go_home = true,
     [TJ_ID_2].pos_limit_min = 0,
-    [TJ_ID_2].pos_limit_max = 2000,
+    [TJ_ID_2].pos_limit_max = POS_LIMIT_MAX,
     [TJ_ID_2].servo_id = TJ_ID_2,
-    // 舵机3
+    // 电机3
     [TJ_ID_3].is_servo_valid = true,
     [TJ_ID_3].is_servo_online = true,
     [TJ_ID_3].go_home = true,
     [TJ_ID_3].pos_limit_min = 0,
-    [TJ_ID_3].pos_limit_max = 2000,
+    [TJ_ID_3].pos_limit_max = POS_LIMIT_MAX,
     [TJ_ID_3].servo_id = TJ_ID_3,
-    // 舵机4
+    // 电机4
     [TJ_ID_4].is_servo_valid = true,
     [TJ_ID_4].is_servo_online = true,
     [TJ_ID_4].go_home = true,
     [TJ_ID_4].pos_limit_min = 0,
-    [TJ_ID_4].pos_limit_max = 2000,
+    [TJ_ID_4].pos_limit_max = POS_LIMIT_MAX,
     [TJ_ID_4].servo_id = TJ_ID_4,
-    // 舵机5
+    // 电机5
     [TJ_ID_5].is_servo_valid = true,
     [TJ_ID_5].is_servo_online = true,
     [TJ_ID_5].go_home = true,
     [TJ_ID_5].pos_limit_min = 0,
-    [TJ_ID_5].pos_limit_max = 2000,
+    [TJ_ID_5].pos_limit_max = POS_LIMIT_MAX,
     [TJ_ID_5].servo_id = TJ_ID_5,
-    // 舵机6
+    // 电机6
     [TJ_ID_6].is_servo_valid = true,
     [TJ_ID_6].is_servo_online = true,
     [TJ_ID_6].go_home = true,
     [TJ_ID_6].pos_limit_min = 0,
-    [TJ_ID_6].pos_limit_max = 2000,
+    [TJ_ID_6].pos_limit_max = POS_LIMIT_MAX_THEMB_YAW,
     [TJ_ID_6].servo_id = TJ_ID_6,
 };
 
@@ -133,6 +133,8 @@ void TJ_Motor_Control(TJ_Servo *pServo, TJ_Control_Data *tj_control_data)
   TJ_Control_Data_Unit *data_unit;
 	for (uint8_t i = TJ_ID_1; i < TJ_ID_MAXIMUM; i++)
 	{
+		if(pServo[i].is_servo_online == false)
+		 continue;
 		switch (i) 
 		{
 		case 1: data_unit = &tj_control_data->thumb; break;
@@ -151,8 +153,17 @@ void TJ_Motor_Control(TJ_Servo *pServo, TJ_Control_Data *tj_control_data)
 			clear_usart4_fault();
       position_mode_r(stTjCommAllInfo, i, data_unit->angle, TJ_TARGET_POS);
       data_unit[i - 1].last_angle = data_unit->angle;
-			osDelay(1);
+			
     }
+//		if (data_unit->speed_ref != data_unit->last_speed_ref) // 指令改变才去控制电机
+//		{
+//			position_mode_r(stTjCommAllInfo, i, data_unit->speed_ref, TJ_TARGET_KD);
+//			data_unit->last_speed_ref = data_unit->speed_ref;
+//			osDelay(1);
+//			position_mode_r(stTjCommAllInfo, i, data_unit->speed_ref, TJ_CUR_KPKD_ACK);
+//			osDelay(1);
+//		}
+		osDelay(1);
   }
 }
 
@@ -173,20 +184,28 @@ void TJ_Init_Pos(TJ_Servo *pServo, TJ_Control_Data *tj_control_data)
 		case 6: data_unit = &tj_control_data->thumb_yaw; break;
 		default: continue;
 		}
-		uint8_t retry = 0;
-		do {
+		uint16_t  retry = 0;
+		while(pServo[i].tj_servo_data.stTjConfig_data.u8MotorID == 0 && retry < MAX_WAIT_ACK_TIME) {
 				read_table(stTjCommAllInfo, i, TJ_TORQUE_ACK);
 				osDelay(1);
-		} while(pServo[i].tj_servo_data.stTjConfig_data.u8MotorID == 0 && retry++ < MAX_WAIT_ACK_TIME); 
+				retry++;
+		}
 		if (pServo[i].tj_servo_data.stTjConfig_data.u8MotorID != (TJ_SERVO_ID)i) // 通过这个判断去判定通讯是否正常，电机是否在线
 		{
 			pServo[i].is_servo_online = false; // 如果电机不在线，就将其状态更改为无效
 		}
-		target_pos = CONSTRAIN(pServo[i].tj_servo_data.stTjStatus_data.Current_position,pServo[i].pos_limit_max, pServo[i].pos_limit_min);
-		position_mode_r(stTjCommAllInfo, i, target_pos, TJ_TARGET_POS);                                                                                                                                                                                                                                                                                                                        
-		data_unit->angle = target_pos;
-		data_unit->last_angle = data_unit->angle;
-		osDelay(1);
+		else
+		{
+			
+			target_pos = CONSTRAIN(pServo[i].tj_servo_data.stTjStatus_data.Current_position,pServo[i].pos_limit_max, pServo[i].pos_limit_min);
+			position_mode_r(stTjCommAllInfo, i, target_pos, TJ_TARGET_POS);  
+			osDelay(1);
+			position_mode_r(stTjCommAllInfo, i, 1400, TJ_LIMIT_I);  //设置最大电流设定值
+		
+			data_unit->angle = target_pos;
+			data_unit->last_angle = data_unit->angle;
+			osDelay(1);
+		}
 	}
 }
 
@@ -269,57 +288,42 @@ void tj_get_cmd(TJ_Servo *pServo, TJ_Control_Data *ft_control_data, Upper_Reques
      {
      if (pServo[i].is_servo_valid == true)
      {
-        if (i == TJ_ID_1 || i == TJ_ID_6) 
+        if (i == TJ_ID_1) 
         {
-           data_unit[i - 1].angle = map_0xff_to_2000(255 - request_pos[i-1]);
+           data_unit[i - 1].angle = map_0xff_to_2000(255 - request_pos[i-1],POS_LIMIT_MAX_THEMB);
         }
+				else if(i == TJ_ID_6)
+				{
+					data_unit[i - 1].angle = map_0xff_to_2000(255 - request_pos[i-1],POS_LIMIT_MAX_THEMB_YAW);
+				}
         else
 				{
-					data_unit[i - 1].angle = map_0xff_to_2000(request_pos[i-1]);
+					data_unit[i - 1].angle = map_0xff_to_2000(request_pos[i-1], POS_LIMIT_MAX);
 				}
 			}
 		}
    
   }
   break;
-  case MAX_PRESS_RCO:
+  case MAX_LIMIT_I_RCO:
   {
-    data_unit[0].target_torque = map_0xff_to_4000(request_torque[0]);
-    data_unit[1].target_torque = map_0xff_to_4000(request_torque[1]);
-    data_unit[2].target_torque = map_0xff_to_4000(request_torque[2]);
-    data_unit[3].target_torque = map_0xff_to_4000(request_torque[3]);
-    data_unit[4].target_torque = map_0xff_to_4000(request_torque[4]);
-		data_unit[5].target_torque = map_0xff_to_4000(request_torque[5]);
+    data_unit[0].target_torque = map_0xff_to_2000(request_torque[0],MAX_CURRENT_LIMIT_I);
+    data_unit[1].target_torque = map_0xff_to_2000(request_torque[1],MAX_CURRENT_LIMIT_I);
+    data_unit[2].target_torque = map_0xff_to_2000(request_torque[2],MAX_CURRENT_LIMIT_I);
+    data_unit[3].target_torque = map_0xff_to_2000(request_torque[3],MAX_CURRENT_LIMIT_I);
+    data_unit[4].target_torque = map_0xff_to_2000(request_torque[4],MAX_CURRENT_LIMIT_I);
+		data_unit[5].target_torque = map_0xff_to_2000(request_torque[5],MAX_CURRENT_LIMIT_I);
   }
   break;
 
   case SPEED_RCO:
   {
-    if (pServo[TJ_ID_1].is_servo_valid == true)
-    {
-      data_unit[TJ_ID_1 - 1].speed_ref = map_0xff_to_4000(request_speed[0]);
-    }
-     if (pServo[TJ_ID_2].is_servo_valid == true)
-    {
-			 data_unit[TJ_ID_2 - 1].speed_ref = map_0xff_to_4000(request_speed[1]);
-		}
-		if (pServo[TJ_ID_3].is_servo_valid == true)
+		for(int i = TJ_ID_1; i < TJ_ID_MAXIMUM; i++)
 		{
-			 data_unit[TJ_ID_3 - 1].speed_ref = map_0xff_to_4000(request_speed[2]);
+			if (pServo[i].is_servo_valid == true)
+				data_unit[i - 1].speed_ref = map_speed_to_kd(request_speed[i - 1]);
 		}
-		if (pServo[TJ_ID_4].is_servo_valid == true)
-		{
-			 data_unit[TJ_ID_4 - 1].speed_ref = map_0xff_to_4000(request_speed[3]);
-		}
-		 if (pServo[TJ_ID_5].is_servo_valid == true)
-		 {
-			 data_unit[TJ_ID_5 - 1].speed_ref = map_0xff_to_4000(request_speed[4]);
-		 }
-		 if (pServo[TJ_ID_6].is_servo_valid == true)
-		 {
-			 data_unit[TJ_ID_6 - 1].speed_ref = map_0xff_to_4000(request_speed[0]);
-		 }
-		}
+	}
   break;
 
   case ACCELERATION_RCO:
@@ -356,21 +360,26 @@ void tj_set_status(TJ_Servo *pServo, Lower_Response *lower_response)
 
 	for (int i = TJ_ID_1; i < (TJ_ID_MAXIMUM); i++)
 	{
-			if(i == TJ_ID_1 || i == TJ_ID_6)
+			if(i == TJ_ID_1)
 			{	
-         response_pos[i-1] = map_2000_to_oxff(2000- pServo[i].tj_servo_data.stTjStatus_data.Current_position);				
+         response_pos[i-1] = map_2000_to_oxff(POS_LIMIT_MAX_THEMB- pServo[i].tj_servo_data.stTjStatus_data.Current_position, POS_LIMIT_MAX_THEMB);				
+			}
+			else if(i == TJ_ID_6)
+			{
+				response_pos[i-1] = map_2000_to_oxff(POS_LIMIT_MAX_THEMB_YAW- pServo[i].tj_servo_data.stTjStatus_data.Current_position, POS_LIMIT_MAX_THEMB_YAW);			
 			}
 			else
 			{
-				response_pos[i-1] = map_2000_to_oxff(pServo[i].tj_servo_data.stTjStatus_data.Current_position);
+				response_pos[i-1] = map_2000_to_oxff(pServo[i].tj_servo_data.stTjStatus_data.Current_position, POS_LIMIT_MAX);
 			}
-			//response_load[i - 1] = map_4000_to_oxff(pServo[i].tj_servo_data.stTjStatus_data.Current_torque);
+			response_load[i - 1] = map_2000_to_oxff(pServo[i].tj_servo_data.stTjConfig_data.fOtpThreshold, MAX_CURRENT_LIMIT_I);
 			response_temp[i - 1] = pServo[i].tj_servo_data.stTjStatus_data.u8Tempture;
+			response_speed[i - 1] = map_kd_to_speed(pServo[i].tj_servo_data.stTjConfig_data.fPosKd / 10.0f);
 			//response_current[i -1] = pServo[i].tj_servo_data.stTjStatus_data.Current;
 			response_error_code[i - 1] = pServo[i].tj_servo_data.stTjStatus_data.stFault.u8FaultInfo;
 			// speed_get
 //			current_speed = pServo[i].ft_servo_data.ft_058_current_velocity * 255 / (FT_ALL_MAX_SPEED - FT_ALL_MIN_SPEED);
-//			response_speed[i - 1] = float_to_uint8_round(ABS(current_speed));
+			
 //			//通过读取电机电流，代替实时扭矩
 //			current_load = pServo[i].ft_servo_data.ft_069_current * 255 / (FT_ALL_MAX_Torque);
 
@@ -448,4 +457,31 @@ void tj_locked_rotor_detection(TJ_Servo *pServo, TJ_Control_Data *tj_control_dat
 		}
 	}
 	
+}
+uint16_t map_speed_to_kd(uint8_t speed)
+{
+	if (speed == 0)  // 速度为0，电机不运动
+    {
+        return 0;
+    }
+
+    // 1. 映射 speed(1~255) → kd_float(4.0~2.1)
+    float kd_float = SPEED_KD_MIN + (255.0f - speed) * (SPEED_KD_MAX - SPEED_KD_MIN) / (255.0f - 1.0f);
+
+    // 2. 转换成整数命令 (0~2000)
+    uint16_t kd_cmd = (uint16_t)(kd_float * 10.0f);
+}
+uint8_t map_kd_to_speed(uint16_t kd_cmd)
+{
+    // 1. 转换回浮点 kd
+    float kd_float = kd_cmd / 10.0f;
+
+    // 2. 反推 speed
+    float speed = 255.0f - (kd_float - SPEED_KD_MIN) * (255.0f - 1.0f) / (SPEED_KD_MAX - SPEED_KD_MIN);
+
+    // 3. 限制范围 [1, 255]
+    if (speed < 1.0f) speed = 1.0f;
+    if (speed > 255.0f) speed = 255.0f;
+
+    return (uint8_t)(speed + 0.5f); // 四舍五入
 }

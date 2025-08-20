@@ -157,9 +157,41 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>183</LineNumber>
+          <LineNumber>205</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134237000</Address>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\UsrFML\TJ_Motor_Control_fml.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>508</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134243968</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\UsrFML\upper_comm_protocol_fml.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\L6_6DOF_5Finger_Controller\../UsrFML/upper_comm_protocol_fml.c\508</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>210</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134237760</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -168,23 +200,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\UsrFML\TJ_Motor_Control_fml.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\\../UsrFML/TJ_Motor_Control_fml.c\183</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>407</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134229910</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>../Core/Src/stm32g4xx_it.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\L6_6DOF_5Finger_Controller\../Core/Src/stm32g4xx_it.c\407</Expression>
+          <Expression>\\L6_6DOF_5Finger_Controller\../UsrFML/TJ_Motor_Control_fml.c\210</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -377,11 +393,6 @@
           <count>37</count>
           <WinNumber>1</WinNumber>
           <ItemText>reliable_size</ItemText>
-        </Ww>
-        <Ww>
-          <count>38</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>tj_control_data</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>

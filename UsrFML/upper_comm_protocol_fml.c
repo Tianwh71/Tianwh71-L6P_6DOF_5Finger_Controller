@@ -83,6 +83,7 @@ uint8_t Crc8(uint8_t *data, uint8_t nbrOfBytes)
 	}
 	return crc8;
 }
+uint8_t tip_force_state;
 
 // can接收解析
 void comm_can_parser(Upper_Can_Transmit *can_trans, Upper_Request *upper_request, Protocol_Aux_Data *aux_data)
@@ -98,18 +99,21 @@ void comm_can_parser(Upper_Can_Transmit *can_trans, Upper_Request *upper_request
 	{
 		if (can_trans->receive_len == 7)
 		{
-			upper_request->joint_angle_1 = (can_trans->receive_buf[1] < 5) ? 5 : can_trans->receive_buf[1];   //由于硬件限位增加边界检查
+			//upper_request->joint_angle_1 = (can_trans->receive_buf[1] < 20) ? 25 : can_trans->receive_buf[1];   //由于硬件限位增加边界检查
+			upper_request->joint_angle_1 = can_trans->receive_buf[1];
 			upper_request->joint_angle_2 = can_trans->receive_buf[2];
 			upper_request->joint_angle_3 = can_trans->receive_buf[3];
 			upper_request->joint_angle_4 = can_trans->receive_buf[4];
 			upper_request->joint_angle_5 = can_trans->receive_buf[5];
-			upper_request->joint_angle_6 = (can_trans->receive_buf[6] < 15) ? 15 : can_trans->receive_buf[6];
+			upper_request->joint_angle_6 = can_trans->receive_buf[6];
+			//upper_request->joint_angle_6 = (can_trans->receive_buf[6] < 5) ? 5 : can_trans->receive_buf[6];
 			aux_data->return_frame_makers |= RETURN_POSITION;
 			aux_data->frame_property = JOINT_POSITION_RCO;
 		}
 		else if (can_trans->receive_len == 1)
 		{
 			aux_data->return_frame_makers |= RETURN_POSITION;
+			aux_data->frame_property = JOINT_POSITION_RCO;
 		}
 		else
 		{
@@ -118,33 +122,64 @@ void comm_can_parser(Upper_Can_Transmit *can_trans, Upper_Request *upper_request
 		}
 	}
 	break;
-	case MAX_PRESS_RCO:
+	case MAX_LIMIT_I_RCO:
 	{
-		if(can_trans->receive_len == 7)
-		{
-			upper_request->pressure_1 = can_trans->receive_buf[1];
-			upper_request->pressure_2 = can_trans->receive_buf[2];
-			upper_request->pressure_3 = can_trans->receive_buf[3];
-			upper_request->pressure_4 = can_trans->receive_buf[4];
-			upper_request->pressure_5 = can_trans->receive_buf[5];
-			upper_request->pressure_6 = can_trans->receive_buf[6];
-			aux_data->return_frame_makers |= RETURN_PRESS1;
-			aux_data->frame_property = MAX_PRESS_RCO;
-		}
+//		if(can_trans->receive_len == 7)
+//		{
+//			upper_request->pressure_1 = can_trans->receive_buf[1];
+//			upper_request->pressure_2 = can_trans->receive_buf[2];
+//			upper_request->pressure_3 = can_trans->receive_buf[3];
+//			upper_request->pressure_4 = can_trans->receive_buf[4];
+//			upper_request->pressure_5 = can_trans->receive_buf[5];
+//			upper_request->pressure_6 = can_trans->receive_buf[6];
+//			aux_data->return_frame_makers |= RETURN_PRESS1;
+//			aux_data->frame_property = MAX_LIMIT_I_RCO;
+//		}
+//		else if(can_trans->receive_len == 1)
+//		{
+//			aux_data->return_frame_makers |= RETURN_PRESS1;
+//			aux_data->frame_property = MAX_LIMIT_I_RCO;
+//		}
+//		else
+//		{
+//			aux_data->return_frame_makers |= RETURN_ERROR;
+//			aux_data->frame_property = ERROR_CODE;
+//		}
 	}
 	break;
 	case SPEED_RCO:
 	{
-		if(can_trans->receive_len == 6)
-		{
-			upper_request->speed_1 = can_trans->receive_buf[1];
-			upper_request->speed_2 = can_trans->receive_buf[2];
-			upper_request->speed_3 = can_trans->receive_buf[3];
-			upper_request->speed_4 = can_trans->receive_buf[4];
-			upper_request->speed_5 = can_trans->receive_buf[5];
-			aux_data->return_frame_makers |= RETURN_SPEED;
-			aux_data->frame_property = SPEED_RCO;
-		}
+//		if(can_trans->receive_len == 7)
+//		{
+//			upper_request->speed_1 = can_trans->receive_buf[1];
+//			upper_request->speed_2 = can_trans->receive_buf[2];
+//			upper_request->speed_3 = can_trans->receive_buf[3];
+//			upper_request->speed_4 = can_trans->receive_buf[4];
+//			upper_request->speed_5 = can_trans->receive_buf[5];
+//			upper_request->speed_6 = can_trans->receive_buf[6];
+//			aux_data->return_frame_makers |= RETURN_SPEED;
+//			aux_data->frame_property = SPEED_RCO;
+//		}
+	}
+	break;
+	case Hand_Normal_Force:
+	{
+		tip_force_state = Hand_Normal_Force;
+	}
+	break;
+	case Hand_Tangential_Force:
+	{
+		tip_force_state = Hand_Tangential_Force;
+	}
+	break;
+	case Hand_Tangential_Force_Dir:
+	{
+		tip_force_state = Hand_Tangential_Force_Dir;
+	}
+	break;
+	case Hand_Approach_Inc:
+	{
+		tip_force_state = Hand_Approach_Inc;
 	}
 	break;
 	case Temp1:
@@ -180,6 +215,19 @@ void comm_can_parser(Upper_Can_Transmit *can_trans, Upper_Request *upper_request
 		}
 	}
 	break;
+	case HAND_UID:
+	{
+		
+	}
+	break;
+	case HAND_HARDWARE_VERSION:
+	{
+	}
+	break;
+	case HAND_SOFTWARE_VERSION:
+	{
+	}
+	break;
 	case Error_Code1:
 	{
 		if (can_trans->receive_len == 1)
@@ -203,6 +251,64 @@ void comm_can_parser(Upper_Can_Transmit *can_trans, Upper_Request *upper_request
 	break;
 }
 }
+void comm_can_config_parser(Upper_Can_Transmit *can_trans, Upper_Request *upper_request, Protocol_Aux_Data *aux_data)
+{
+	if (can_trans->receive_flag == false)
+	{
+		return;
+	}
+	aux_data->comm_interface = COMM_CAN; // 标记使用的是can接口
+	aux_data->frame_property = (FRAME_PROPERTY)can_trans->receive_buf[0];
+	if((aux_data->frame_property >= HAND_UID)&&(aux_data->frame_property <= SAVE_PARAMETER) )
+	{
+		can_trans->receive_flag = false;//数据已被使用
+		switch((FRAME_PROPERTY)can_trans->receive_buf[0])
+		{	
+				//配置区域
+			case HAND_UID:
+			{
+				if(can_trans->receive_len == 7)	
+				{
+				
+				}
+				aux_data->return_frame_makers |= HAND_UID;
+			}
+			break;
+			case HAND_HARDWARE_VERSION:
+			{
+				if(can_trans->receive_len == 7)	
+				{
+			
+				}
+				aux_data->return_frame_makers |= HAND_HARDWARE_VERSION;
+			}
+				break;
+			case HAND_SOFTWARE_VERSION:
+			{
+				if(can_trans->receive_len == 7)	
+				{
+			
+				}
+				aux_data->return_frame_makers |= HAND_HARDWARE_VERSION;
+			}
+			break;
+			
+			case HAND_FACTORY_RESET:
+			{
+				aux_data->return_frame_makers |= HAND_FACTORY_RESET;
+			}
+			break;
+			case SAVE_PARAMETER:
+			{
+				
+				aux_data->return_frame_makers |= SAVE_PARAMETER;
+			}break;
+			default:			{
+				can_trans->receive_flag = true;//更正数据状态，数据未被使用
+				}break;
+		}
+	}
+}
 // can发送
 void comm_can_send(Upper_Can_Transmit *can_trans, Lower_Response *lower_response, FRAME_PROPERTY frame_property)
 {
@@ -220,20 +326,28 @@ void comm_can_send(Upper_Can_Transmit *can_trans, Lower_Response *lower_response
 			FDCAN2_Send_Msg(can_trans->send_buf, 7, SELF_ID);
 		}
 		break;
-		case MAX_PRESS_RCO:
+		case MAX_LIMIT_I_RCO:
 		{
-	//		can_trans->send_buf[0] = MAX_PRESS_RCO;
-	//		can_trans->send_buf[1] = lower_response->curr_pressure_1; // 大拇指力矩
-	//		can_trans->send_buf[2] = lower_response->curr_pressure_2;
-	//		can_trans->send_buf[3] = lower_response->curr_pressure_3;
-	//		can_trans->send_buf[4] = lower_response->curr_pressure_4;
-	//		can_trans->send_buf[5] = lower_response->curr_pressure_5;
-	//		can_trans->send_buf[6] = lower_response->curr_pressure_6;
-	//		FDCAN2_Send_Msg(can_trans->send_buf, 7, SELF_ID);
+			can_trans->send_buf[0] = MAX_LIMIT_I_RCO;
+			can_trans->send_buf[1] = lower_response->curr_pressure_1; // 大拇指力矩
+			can_trans->send_buf[2] = lower_response->curr_pressure_2;
+			can_trans->send_buf[3] = lower_response->curr_pressure_3;
+			can_trans->send_buf[4] = lower_response->curr_pressure_4;
+			can_trans->send_buf[5] = lower_response->curr_pressure_5;
+			can_trans->send_buf[6] = lower_response->curr_pressure_6;
+			FDCAN2_Send_Msg(can_trans->send_buf, 7, SELF_ID);
 		}
 		break;
 		case SPEED_RCO:
 		{
+			can_trans->send_buf[0] = Temp1;
+			can_trans->send_buf[1] = lower_response->current_speed_1;
+			can_trans->send_buf[2] = lower_response->current_speed_1;
+			can_trans->send_buf[3] = lower_response->current_speed_1;
+			can_trans->send_buf[4] = lower_response->current_speed_1;
+			can_trans->send_buf[5] = lower_response->current_speed_1;
+			can_trans->send_buf[6] = lower_response->current_speed_1;
+			FDCAN2_Send_Msg(can_trans->send_buf, 7, SELF_ID);
 		}
 		break;
 
@@ -277,6 +391,113 @@ void comm_can_send(Upper_Can_Transmit *can_trans, Lower_Response *lower_response
 			break;
 	}
 }
+void Can_Send_Tip_Force_Data(Tip_Send_Data *tip_send, FRAME_PROPERTY frame_property)
+{
+	uint8_t can_trans[8];
+
+	switch (frame_property)
+	{
+	case Hand_Normal_Force:
+	{
+		can_trans[0] = Hand_Normal_Force;
+		can_trans[1] = tip_send->Thumb.normal_force;
+		can_trans[2] = tip_send->Index.normal_force;
+		can_trans[3] = tip_send->Middle.normal_force;
+		can_trans[4] = tip_send->Ring.normal_force;
+		can_trans[5] = tip_send->Little.normal_force;
+		FDCAN2_Send_Msg(can_trans, 7, SELF_ID);
+	}
+	break;
+	case Hand_Tangential_Force:
+	{
+		can_trans[0] = Hand_Tangential_Force;
+		can_trans[1] = tip_send->Thumb.tangential_force;
+		can_trans[2] = tip_send->Index.tangential_force;
+		can_trans[3] = tip_send->Middle.tangential_force;
+		can_trans[4] = tip_send->Ring.tangential_force;
+		can_trans[5] = tip_send->Little.tangential_force;
+		FDCAN2_Send_Msg(can_trans, 7, SELF_ID);
+	}
+	break;
+	case Hand_Tangential_Force_Dir:
+	{
+		can_trans[0] = Hand_Tangential_Force_Dir;
+		can_trans[1] = tip_send->Thumb.tangential_force_dir;
+		can_trans[2] = tip_send->Index.tangential_force_dir;
+		can_trans[3] = tip_send->Middle.tangential_force_dir;
+		can_trans[4] = tip_send->Ring.tangential_force_dir;
+		can_trans[5] = tip_send->Little.tangential_force_dir;
+		FDCAN2_Send_Msg(can_trans, 7, SELF_ID);
+	}
+	break;
+	case Hand_Approach_Inc:
+	{
+		can_trans[0] = Hand_Approach_Inc;
+		can_trans[1] = tip_send->Thumb.approach_inc;
+		can_trans[2] = tip_send->Index.approach_inc;
+		can_trans[3] = tip_send->Middle.approach_inc;
+		can_trans[4] = tip_send->Ring.approach_inc;
+		can_trans[5] = tip_send->Little.approach_inc;
+		FDCAN2_Send_Msg(can_trans, 7, SELF_ID);
+	}
+	break;
+	case Thumb_All_Data:
+	{
+		can_trans[0] = Thumb_All_Data;
+		can_trans[1] = tip_send->Thumb.normal_force;
+		can_trans[2] = tip_send->Thumb.tangential_force;
+		can_trans[3] = tip_send->Thumb.tangential_force_dir;
+		can_trans[4] = tip_send->Thumb.approach_inc;
+		FDCAN2_Send_Msg(can_trans, 7, SELF_ID);
+	}
+	break;
+	case Index_All_Data:
+	{
+		can_trans[0] = Index_All_Data;
+		can_trans[1] = tip_send->Index.normal_force;
+		can_trans[2] = tip_send->Index.tangential_force;
+		can_trans[3] = tip_send->Index.tangential_force_dir;
+		can_trans[4] = tip_send->Index.approach_inc;
+		FDCAN2_Send_Msg(can_trans, 7, SELF_ID);
+	}
+	break;
+	case Middle_All_Data:
+	{
+		can_trans[0] = Middle_All_Data;
+		can_trans[1] = tip_send->Middle.normal_force;
+		can_trans[2] = tip_send->Middle.tangential_force;
+		can_trans[3] = tip_send->Middle.tangential_force_dir;
+		can_trans[4] = tip_send->Middle.approach_inc;
+		FDCAN2_Send_Msg(can_trans, 7, SELF_ID);
+	}
+	break;
+	case Ring_All_Data:
+	{
+		can_trans[0] = Ring_All_Data;
+		can_trans[1] = tip_send->Ring.normal_force;
+		can_trans[2] = tip_send->Ring.tangential_force;
+		can_trans[3] = tip_send->Ring.tangential_force_dir;
+		can_trans[4] = tip_send->Ring.approach_inc;
+		FDCAN2_Send_Msg(can_trans, 7, SELF_ID);
+	}
+	break;
+	case Little_All_Data:
+	{
+		can_trans[0] = Little_All_Data;
+		can_trans[1] = tip_send->Little.normal_force;
+		can_trans[2] = tip_send->Little.tangential_force;
+		can_trans[3] = tip_send->Little.tangential_force_dir;
+		can_trans[4] = tip_send->Little.approach_inc;
+		FDCAN2_Send_Msg(can_trans, 7, SELF_ID);
+	}
+	break;
+	default:
+	{
+	}
+		return;
+	}
+}
+
 void event_can_dispose(void)
 {
 	comm_can_parser(&upper_can_transmit, &upper_request, &protocol_aux_data); // can解析
@@ -290,7 +511,7 @@ void event_can_dispose(void)
 	}
 	if (protocol_aux_data.return_frame_makers & RETURN_PRESS1)
 	{
-		comm_can_send(&upper_can_transmit, &lower_response, MAX_PRESS_RCO);
+		comm_can_send(&upper_can_transmit, &lower_response, MAX_LIMIT_I_RCO);
 	}
 	if (protocol_aux_data.return_frame_makers & RETURN_SPEED)
 	{
@@ -316,6 +537,29 @@ void event_can_dispose(void)
 	if (protocol_aux_data.return_frame_makers & RETURN_ERROR)
 	{
 		comm_can_send(&upper_can_transmit, &lower_response, ERROR_CODE);
+	}
+	if (tip_sensor_select == TASHAN_GATHER)
+	{
+		if (tip_force_state == Hand_Normal_Force)
+		{
+			Can_Send_Tip_Force_Data(&tip_send_data, Hand_Normal_Force);
+			tip_force_state = 0;
+		}
+		if (tip_force_state == Hand_Tangential_Force)
+		{
+			Can_Send_Tip_Force_Data(&tip_send_data, Hand_Tangential_Force);
+			tip_force_state = 0;
+		}
+		if (tip_force_state == Hand_Tangential_Force_Dir)
+		{
+			Can_Send_Tip_Force_Data(&tip_send_data, Hand_Tangential_Force_Dir);
+			tip_force_state = 0;
+		}
+		if (tip_force_state == Hand_Approach_Inc)
+		{
+			Can_Send_Tip_Force_Data(&tip_send_data, Hand_Approach_Inc);
+			tip_force_state = 0;
+		}
 	}
 
 	protocol_aux_data.return_frame_makers = RETURN_NONE;
@@ -391,11 +635,9 @@ void comm_can_touch_sensor_send(Upper_Can_Transmit *can_trans, Lower_Response *p
 	{
 		for (int i = 0; i < rows; i++)
 		{
-			int reversed_i = rows-1-i;
 			for (int j = 0; j < cols; j++)
 			{
-				int reversed_j = cols-1-j;
-				input[reversed_i][reversed_j] = pResponse->hwk_hand_sensor->index.data[i][j];
+				input[i][j] = pResponse->hwk_hand_sensor->index.data[i][j];
 			}
 		}
 	}
@@ -404,11 +646,9 @@ void comm_can_touch_sensor_send(Upper_Can_Transmit *can_trans, Lower_Response *p
 	{
 		for (int i = 0; i < rows; i++)
 		{
-			int reversed_i = rows-1-i;
 			for (int j = 0; j < cols; j++)
 			{
-				int reversed_j = cols-1-j;
-				input[reversed_i][reversed_j] = pResponse->hwk_hand_sensor->middle.data[i][j];
+				input[i][j] = pResponse->hwk_hand_sensor->middle.data[i][j];
 			}
 		}
 	}
@@ -417,11 +657,9 @@ void comm_can_touch_sensor_send(Upper_Can_Transmit *can_trans, Lower_Response *p
 	{
 		for (int i = 0; i < rows; i++)
 		{
-			int reversed_i = rows-1-i;
 			for (int j = 0; j < cols; j++)
 			{
-				int reversed_j = cols-1-j;
-				input[reversed_i][reversed_j] = pResponse->hwk_hand_sensor->ring.data[i][j];
+				input[i][j] = pResponse->hwk_hand_sensor->ring.data[i][j];
 			}
 		}
 	}
@@ -430,11 +668,11 @@ void comm_can_touch_sensor_send(Upper_Can_Transmit *can_trans, Lower_Response *p
 	{
 		for (int i = 0; i < rows; i++)
 		{
-			int reversed_i = rows-1-i;
+			//int reversed_i = rows-1-i;
 			for (int j = 0; j < cols; j++)
 			{
-				int reversed_j = cols-1-j;
-				input[reversed_i][reversed_j] = pResponse->hwk_hand_sensor->little.data[i][j];
+				//int reversed_j = cols-1-j;
+				input[i][j] = pResponse->hwk_hand_sensor->little.data[i][j];
 			}
 		}
 	}

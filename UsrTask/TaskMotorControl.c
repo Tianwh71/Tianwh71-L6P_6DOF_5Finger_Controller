@@ -5,7 +5,6 @@
 #include "TJ_Motor_Control_fml.h"
 void MotorControlTaskFun(void *argument)
 {
-	
 	 // 启动初始接收
 	HAL_UARTEx_ReceiveToIdle_DMA(&huart2, stTjCommAllInfo[0].pstTjAnswer_frame->u8receive_data, TJ_DATA_RECV_LEN_MAX);
 	HAL_UARTEx_ReceiveToIdle_DMA(&huart3, stTjCommAllInfo[1].pstTjAnswer_frame->u8receive_data, TJ_DATA_RECV_LEN_MAX);

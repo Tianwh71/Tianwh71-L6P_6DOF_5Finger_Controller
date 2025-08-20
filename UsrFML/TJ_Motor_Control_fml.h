@@ -8,10 +8,16 @@
 
 #define JOINT_LOCK_THRESHOLD 500	 // 堵转阈值
 #define JOINT_LOCK_TIME 50				 // 堵转时间
-#define JOINT_LOCK_TORQUE 200			 // 堵转电流
+#define JOINT_LOCK_TORQUE 700			 // 堵转电流
 #define MAX_LOCKED_ROTOR_TIME 2550 // 最大堵转时间
-#define MAX_WAIT_ACK_TIME 500			 //上电后读取当前位置最大等待返回帧时间
+#define MAX_WAIT_ACK_TIME 2500			 //上电后读取当前位置最大等待返回帧时间
 #define DEFAULT_LIMIT_T 0x044C		 //电机默认电流1.1A
+#define SPEED_KD_MAX 4.0           //由于电机没有控制速度指令，通过控制KD控制速度，kd越大，速度越慢，（最好不要超过4.0）
+#define SPEED_KD_MIN 2.1
+#define POS_LIMIT_MAX_THEMB 1800   		 //由于硬件限位，大拇指弯曲最大限位是1800
+#define POS_LIMIT_MAX_THEMB_YAW 1920     //
+#define POS_LIMIT_MAX 2000					 //电机最大范围
+#define MAX_CURRENT_LIMIT_I 1500         //电机电流最大设定值
 /*飞特舵机设备地址码*/
 typedef enum
 {
@@ -93,4 +99,6 @@ void TJ_Init_Pos(TJ_Servo *pServo, TJ_Control_Data *tj_control_data);
 void TJ_Motor_Control(TJ_Servo *pServo, TJ_Control_Data *ft_control_data);
 void tj_locked_rotor_detection(TJ_Servo *pServo, TJ_Control_Data *tj_control_data);
 void tj_set_status(TJ_Servo *pServo, Lower_Response *lower_response);
+uint16_t map_speed_to_kd(uint8_t speed);
+uint8_t map_kd_to_speed(uint16_t kd_cmd);
 #endif // _TJ_MOTOR_CONTROL_FML_H

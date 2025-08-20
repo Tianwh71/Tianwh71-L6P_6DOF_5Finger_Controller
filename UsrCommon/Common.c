@@ -1,7 +1,7 @@
 #include "Common.h"
 
 
-
+Tip_Sensor_Select tip_sensor_select = HUAWEIKE;
 
 float Cmn_bytes_to_float(const uint8_t* bytes,EndianType_t EndianMode)
 {
@@ -91,21 +91,12 @@ void Cmn_uint_to_bytes(uint32_t value, uint8_t* bytes,EndianType_t EndianMode)
 		}
 }
 
-uint16_t map_0xff_to_2000(uint8_t value)
+uint16_t map_0xff_to_2000(uint8_t value, uint16_t angle_max)
 {
     // 线性映射：0 -> 0, 255 -> 2000
-    return (uint16_t)((value * 2000) / 255);
+    return (uint16_t)((value * angle_max) / 255);
 }
-uint8_t map_2000_to_oxff(uint16_t value)
+uint8_t map_2000_to_oxff(uint16_t value,uint16_t angle_max)
 {
-	return (uint8_t)((value * 255) /2000);
-}
-uint16_t map_0xff_to_4000(uint8_t value)
-{
-    // 线性映射：0 -> 0, 255 -> 4000
-    return (uint16_t)((value * 4000) / 255);
-}
-uint8_t map_4000_to_oxff(uint16_t value)
-{
-	return (uint8_t)((value * 255) /4000);
+	return (uint8_t)((value * 255) /angle_max);
 }

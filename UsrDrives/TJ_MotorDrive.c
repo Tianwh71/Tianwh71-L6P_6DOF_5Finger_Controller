@@ -394,8 +394,8 @@ bool decode_mc_ans_frame(tjComm_t *pTjComm, tjData *pTjData)
 	{
 		return false;
 	}
-	pTjComm->pstTjAnswer_frame->stCmdType = (tjCmdTy_t)pTjComm->pstTjTransmit->receive_buf[4];   //目前stCmdType只有21
-	pTjComm->pstTjAnswer_frame->stTableIndex = (tjColTable_index)pTjComm->pstTjTransmit->receive_buf[6];
+	pTjComm->pstTjAnswer_frame->stCmdType = rx_buf[4];   //目前stCmdType只有21
+	pTjComm->pstTjAnswer_frame->stTableIndex = rx_buf[6];
 	
 	pTjData->stTjConfig_data.u8MotorID = rx_buf[3];
 	pTjData->stTjStatus_data.u16Target_position= rx_buf[7] + (rx_buf[8] << 8);	 // 目标位置
@@ -408,13 +408,13 @@ bool decode_mc_ans_frame(tjComm_t *pTjComm, tjData *pTjData)
 	{
 		case TJ_CUR_KPKD_ACK:
 		{
-			pTjData->stTjConfig_data.fPosKp = rx_buf[16] + (rx_buf[17] << 8);
-			pTjData->stTjConfig_data.fPosKd = rx_buf[18] + (rx_buf[19] << 8);
+			pTjData->stTjConfig_data.fPosKp = rx_buf[17] + (rx_buf[18] << 8);
+			pTjData->stTjConfig_data.fPosKd = rx_buf[19] + (rx_buf[20] << 8);
 		}
 		break;
 		case TJ_MAX_LIMIT_ACK:
 		{
-			pTjData->stTjConfig_data.fOcpThreshold = rx_buf[16] + (rx_buf[17] << 8);
+			pTjData->stTjConfig_data.fOcpThreshold = rx_buf[17] + (rx_buf[18] << 8);
 		}
 		break;
 		case TJ_TORQUE_ACK:
@@ -508,6 +508,7 @@ void read_table(tjComm_t *pTjComm, uint8_t id, tjColTable_index MemtableIndex)
 	case TJ_LIMIT_I:
 	case TJ_TORQUE_ACK:
 	case TJ_SPEED_ACK:
+  case TJ_MAX_LIMIT_ACK:
 	{
 		if (current_comm->Tjtrans_block_mode == WAIT_SEM_NOP)
 		{

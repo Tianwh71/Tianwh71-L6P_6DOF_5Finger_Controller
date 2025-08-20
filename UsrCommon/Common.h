@@ -26,8 +26,8 @@
 	#define Hand_Direction 82	
 #endif
 #define SoftWare_Version 0x11  //软件版本 数据为十六进制 高四位为大版本，低四位为小版本 如0x11为V1.1
-#define HardWare_Version 0x10  //硬件版本 数据为十六进制 高四位为大版本，低四位为小版本 如0x11为V1.1
-#define Revision_State   0x00  //稳定版本为0 若软件正在修订则高四位为1，硬件正在修改则低四位为1
+#define HardWare_Version 0x11  //硬件版本 数据为十六进制 高四位为大版本，低四位为小版本 如0x11为V1.1
+#define Revision_State   0x10  //稳定版本为0 若软件正在修订则高四位为1，硬件正在修改则低四位为1
 
 
 typedef enum {
@@ -49,13 +49,22 @@ typedef enum
     ENDIAN_BIG = 1
 } EndianType_t;
 
+typedef enum
+{
+	TASHAN_GATHER = 1,
+	HUAWEIKE = 2,
+	FULAI = 3,
+}Tip_Sensor_Select;
+
+extern Tip_Sensor_Select tip_sensor_select;
+
 extern float Cmn_bytes_to_float(const uint8_t *bytes, EndianType_t EndianMode);
 extern void Cmn_float_to_bytes(float value, uint8_t *bytes, EndianType_t EndianMode);
 extern float Cmn_bytes_to_uint(const uint8_t *bytes, EndianType_t EndianMode);
 extern void Cmn_uint_to_bytes(uint32_t value, uint8_t *bytes, EndianType_t EndianMode);
 
-uint16_t map_0xff_to_2000(uint8_t value);
-uint8_t map_2000_to_0xff(uint16_t value);
+uint16_t map_0xff_to_2000(uint8_t value, uint16_t angle_max);
+uint8_t map_2000_to_0xff(uint16_t value, uint16_t angle_max);
 uint16_t map_0xff_to_4000(uint8_t value);
 uint8_t map_4000_to_oxff(uint16_t value);
 
